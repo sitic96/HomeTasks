@@ -15,6 +15,7 @@
 		4934ADA31FCC653F00625E42 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 4934ADA11FCC653F00625E42 /* Main.storyboard */; };
 		4934ADA51FCC653F00625E42 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4934ADA41FCC653F00625E42 /* Assets.xcassets */; };
 		4934ADA81FCC653F00625E42 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 4934ADA61FCC653F00625E42 /* LaunchScreen.storyboard */; };
+		49B4E0781FF59D9C00032C39 /* NetworkService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49B4E0771FF59D9C00032C39 /* NetworkService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -28,6 +29,7 @@
 		4934ADA41FCC653F00625E42 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		4934ADA71FCC653F00625E42 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		4934ADA91FCC653F00625E42 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		49B4E0771FF59D9C00032C39 /* NetworkService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -68,8 +70,8 @@
 		4934AD9C1FCC653F00625E42 /* Player */ = {
 			isa = PBXGroup;
 			children = (
+				49B4E0761FF59D8F00032C39 /* Services */,
 				492DC8101FEFB83C0092A7BD /* Model */,
-				4934ADB01FCC787E00625E42 /* Network */,
 				4934ADAF1FCC782F00625E42 /* Controllers */,
 				4934AD9D1FCC653F00625E42 /* AppDelegate.swift */,
 				4934ADA11FCC653F00625E42 /* Main.storyboard */,
@@ -90,11 +92,12 @@
 			path = Controllers;
 			sourceTree = "<group>";
 		};
-		4934ADB01FCC787E00625E42 /* Network */ = {
+		49B4E0761FF59D8F00032C39 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				49B4E0771FF59D9C00032C39 /* NetworkService.swift */,
 			);
-			path = Network;
+			path = Services;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -188,6 +191,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				49B4E0781FF59D9C00032C39 /* NetworkService.swift in Sources */,
 				492DC8121FEFB84D0092A7BD /* Song.swift in Sources */,
 				4934ADA01FCC653F00625E42 /* StartViewController.swift in Sources */,
 				49014C1F1FF27AAA00227B7E /* SongCell.swift in Sources */,
