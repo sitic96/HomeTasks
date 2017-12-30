@@ -15,6 +15,15 @@ final class Song: Codable {
     let previewLink: URL
     let artwork: URL
     let album: String
+
+    init(singer: String, name: String, genre: String, link: URL, artwork: URL, album: String) {
+        self.singer = singer
+        self.name = name
+        self.primaryGenre = genre
+        self.previewLink = link
+        self.artwork = artwork
+        self.album = album
+    }
     
     init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
@@ -25,4 +34,11 @@ final class Song: Codable {
         artwork = try values.decode(URL.self, forKey: .artwork)
         album = try values.decode(String.self, forKey: .album)
     }
+
+    //    https://stackoverflow.com/a/46327303/4453952
+    //    init(from data: [String: Any?]) throws {
+    //        let jsonData = try JSONSerialization.data(withJSONObject: data)
+    //        let decoder = JSONDecoder()
+    //        self = try decoder.decode(Song.self, from: jsonData)
+    //    }
 }
