@@ -17,26 +17,29 @@ final class NetworkService {
 
     func audioFileRequest(url: URL, songId: Int64, completionHandler: @escaping (_ result: URL?) -> Void) {
         guard let documentsDirectoryURL = FileManager.default.urls(for: .documentDirectory,
-                in: .userDomainMask).first else {
-            return completionHandler(nil)
+                                                                   in: .userDomainMask).first else {
+                                                                    return completionHandler(nil)
         }
-        let destinationUrl = documentsDirectoryURL.appendingPathComponent(String(songId) + "m4a")
+        let destinationUrl = documentsDirectoryURL.appendingPathComponent("\(songId)" + ".m4a")
+
         URLSession.shared.downloadTask(with: url, completionHandler: { (location, response, error) -> Void in
-            guard let location = location,
-                  error == nil,
-                  try FileManager.default.moveItem(at: location, to: destinationUrl) else {
-                return completionHandler(nil)
-            }
+            guard
+                let httpURLResponse = response as? HTTPURLResponse, httpURLResponse.statusCode == 200,
+                let mimeType = response?.mimeType, mimeType.hasPrefix("audio"),
+                let location = location, error == nil
+                else { return completionHandler(nil)}
+
+            try? FileManager.default.moveItem(at: location, to: destinationUrl)
             return completionHandler(destinationUrl)
         }).resume()
     }
 
-    private func request(_ url: URL, completionHandler: @escaping (_ result: Any?) -> Void) {
+    private func request(_ url: URL, completionHandler: @escaping (_ result: Data?) -> Void) {
         let request = URLRequest(url: url)
         let task = session.dataTask(with: request) { (data, _, error) in
             guard error == nil,
-                  let usableData = data else {
-                return completionHandler(nil)
+                let usableData = data else {
+                    return completionHandler(nil)
             }
             completionHandler(usableData)
         }
@@ -45,52 +48,45 @@ final class NetworkService {
 }
 
 extension NetworkService {
-
     // TODO rename
-    private func jsonRequest(url: String, completionHandler: @escaping (_ result: [String: Any]?) -> Void) {
+    private func jsonRequest(url: String, completionHandler: @escaping (_ result: Data?) -> Void) {
         guard let url = URL(string: url) else {
             return completionHandler(nil)
         }
+        print(url)
         request(url) { data in
-            guard let data = data,
-                  let usableData = data as? [String: Any] else {
+            guard let data = data else {
                 return completionHandler(nil)
             }
-            completionHandler(usableData)
+            completionHandler(data)
         }
     }
 
     func getSongs(name: String, limit: Int?, completionHandler: @escaping (_ playlist: Playlist?) -> Void) {
         var plst: Playlist?
-        let group = DispatchGroup()
-        let queue = DispatchQueue.global()
-
-        group.enter()
         getSongsByName(name, limit) { songs in
-            plst = songs
+            completionHandler(songs)
         }
-        group.leave()
-        group.notify(queue: queue, execute: {
-            completionHandler(plst)
-        })
+        //        completionHandler(plst)
     }
 
     private func getSongsByName(_ name: String, _ limit: Int?,
                                 completionHandler: @escaping (_ songs: Playlist?) -> Void) {
-        let url = PossibleURLs.basicSearchURL.rawValue + "\(name)&entity=song&limit=\(String(describing: limit))"
+        let url = PossibleURLs.basicSearchURL.rawValue + "\(name)&entity=song&limit=\(limit ?? 25)"
         jsonRequest(url: url) { [weak self] data in
             guard let data = data else {
                 return completionHandler(nil)
             }
-            completionHandler(self?.getSongsFromJSON(json: NSKeyedArchiver.archivedData(withRootObject: data)))
+            completionHandler(self?.getSongsFromJSON(json: data))
+
         }
     }
 
     private func getSongsFromJSON(json: Data) -> Playlist? {
         let decoder = JSONDecoder()
-        guard let songs = try? decoder.decode([Song].self, from: json) else {
+        guard let songs = try? decoder.decode(Result.self, from: json) else {
             return nil
         }
-        return Playlist(songs)
+        return Playlist(songs.results)
     }
 }

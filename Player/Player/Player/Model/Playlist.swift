@@ -9,6 +9,9 @@
 import Foundation
 final class Playlist {
     private var songs = CircularQueue<Song>()
+    var size: Int {
+        return songs.size
+    }
 
     init(_ songs: [Song]) {
         songs.forEach { song in
@@ -32,11 +35,23 @@ final class Playlist {
         return songs.first()
     }
 
+    func get(index: Int) -> Song? {
+        return songs.get(at: index)
+    }
+
     func shufle() {
         var secondValue: Int
         for var index in (0..<songs.size) {
             secondValue = Int(exactly: arc4random_uniform(UInt32(truncatingIfNeeded: songs.size)))!
             songs.swap(index, secondValue)
         }
+    }
+
+    func removeAll() {
+        songs.removeAll()
+    }
+
+    func startIndex(with index: Int) {
+        songs.changeIndex(with: index)
     }
 }

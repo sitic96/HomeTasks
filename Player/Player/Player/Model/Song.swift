@@ -4,8 +4,8 @@ final class Song: Codable {
     enum CodingKeys: String, CodingKey {
         case singer = "artistName"
         case name = "trackName"
+        case trackViewUrl = "previewUrl"
         case primaryGenre = "primaryGenreName"
-        case previewLink = "trackViewUrl"
         case artwork = "artworkUrl100"
         case album = "collectionName"
         case songID = "trackId"
@@ -15,7 +15,7 @@ final class Song: Codable {
     let singer: String
     let name: String
     let primaryGenre: String
-    let previewLink: URL
+    let trackViewUrl: URL
     let artwork: URL
     let album: String
     var length: Int?
@@ -25,7 +25,7 @@ final class Song: Codable {
         self.singer = singer
         self.name = name
         self.primaryGenre = genre
-        self.previewLink = link
+        self.trackViewUrl = link
         self.artwork = artwork
         self.album = album
         self.songID = songID
@@ -36,7 +36,7 @@ final class Song: Codable {
         name = try values.decode(String.self, forKey: .name)
         singer = try values.decode(String.self, forKey: .singer)
         primaryGenre = try values.decode(String.self, forKey: .primaryGenre)
-        previewLink = try values.decode(URL.self, forKey: .previewLink)
+        trackViewUrl = try values.decode(URL.self, forKey: .trackViewUrl)
         artwork = try values.decode(URL.self, forKey: .artwork)
         album = try values.decode(String.self, forKey: .album)
         songID = try values.decode(Int64.self, forKey: .songID)

@@ -14,7 +14,7 @@ final class SongService {
     private func exist(_ song: Song) -> Bool {
         let path = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0] as String
         let url = NSURL(fileURLWithPath: path)
-        if let pathComponent = url.appendingPathComponent(String(song.songID) + ".m4a") {
+        if let pathComponent = url.appendingPathComponent("\(song.songID)" + ".m4a") {
             let filePath = pathComponent.path
             let fileManager = FileManager.default
             if fileManager.fileExists(atPath: filePath) {
@@ -27,22 +27,29 @@ final class SongService {
         }
     }
 
-    private func downloadSong(_ song: Song, completionHandler: @escaping (_ result: URL?) -> Void) -> URL? {
-        networkService.audioFileRequest(url: song.previewLink, songId: song.songID) { fileURL in
-            completionHandler(fileURL)
+    private func downloadSong(_ song: Song, completionHandler: @escaping (_ result: URL?) -> Void) {
+        networkService.audioFileRequest(url: song.trackViewUrl, songId: song.songID) { url in
+            completionHandler(url)
         }
     }
 
     private func getFromMemory(_ song: Song) -> URL? {
-        return Bundle.main.url(forResource: String(song.songID), withExtension: "m4a")
+        guard let documentsUrl = try? FileManager.default.url(for: .documentDirectory,
+                                                              in: .userDomainMask, appropriateFor: nil, create: true) else {
+            return nil
+        }
+        // your destination file url
+        let destination = documentsUrl.appendingPathComponent("\(song.songID)" + ".m4a")
+        //        return Bundle.main.url(forResource: "\(song.songID)", withExtension: ".m4a")
+        return destination
     }
 
-    func getSongURL(_ song: Song) -> URL? {
+    func getSongURL(_ song: Song, completionHandler: @escaping (_ result: URL?) -> Void) {
         if exist(song) {
-            return getFromMemory(song)
+            completionHandler(getFromMemory(song))
         } else {
-            downloadSong(song) { data in
-                return data
+            downloadSong(song) { song in
+                completionHandler(song)
             }
         }
     }

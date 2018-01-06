@@ -62,4 +62,14 @@ struct CircularQueue<T: Equatable> {
             swap(first, second)
         }
     }
+
+    mutating func removeAll() {
+        items.removeAll()
+    }
+
+    mutating func changeIndex(with newIndex: Int) {
+        if newIndex>0 && newIndex<items.count {
+            pointer = newIndex
+        }
+    }
 }
