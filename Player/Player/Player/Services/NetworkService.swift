@@ -34,6 +34,17 @@ final class NetworkService {
         }).resume()
     }
 
+    private func imageRequest(url: URL, completionHandler: @escaping (_ result: Data?) -> Void) {
+        URLSession.shared.dataTask(with: url) { data, _, error in
+            if error != nil {
+                completionHandler(nil)
+                print(error?.localizedDescription)
+            } else {
+                completionHandler(data)
+            }
+            }.resume()
+    }
+
     private func request(_ url: URL, completionHandler: @escaping (_ result: Data?) -> Void) {
         let request = URLRequest(url: url)
         let task = session.dataTask(with: request) { (data, _, error) in
@@ -62,15 +73,13 @@ extension NetworkService {
         }
     }
 
-    func getSongs(name: String, limit: Int?, completionHandler: @escaping (_ playlist: Playlist?) -> Void) {
-        var plst: Playlist?
-        getSongsByName(name, limit) { songs in
-            completionHandler(songs)
+    func getImage(_ link: URL, completionHandler: @escaping (_ result: Data?) -> Void) {
+        imageRequest(url: link) { data in
+            return completionHandler(data)
         }
-        //        completionHandler(plst)
     }
 
-    private func getSongsByName(_ name: String, _ limit: Int?,
+    func getSongsByName(_ name: String, _ limit: Int?,
                                 completionHandler: @escaping (_ songs: Playlist?) -> Void) {
         let url = PossibleURLs.basicSearchURL.rawValue + "\(name)&entity=song&limit=\(limit ?? 25)"
         jsonRequest(url: url) { [weak self] data in
@@ -84,9 +93,9 @@ extension NetworkService {
 
     private func getSongsFromJSON(json: Data) -> Playlist? {
         let decoder = JSONDecoder()
-        guard let songs = try? decoder.decode(Result.self, from: json) else {
+        guard let result = try? decoder.decode(Result.self, from: json) else {
             return nil
         }
-        return Playlist(songs.results)
+        return Playlist(result.results)
     }
 }

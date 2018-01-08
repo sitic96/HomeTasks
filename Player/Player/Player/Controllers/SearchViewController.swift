@@ -22,7 +22,7 @@ extension SearchViewController {
 
     private func getSongs(songName: String) {
         // TODO remove magic number
-        networkService.getSongs(name: songName, limit: 25) { [weak self] plst in
+        networkService.getSongsByName(songName, 25) { [weak self] plst in
             guard let playlst = plst,
              playlst.size > 0 else {
                 return

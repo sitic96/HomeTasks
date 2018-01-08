@@ -76,19 +76,32 @@ extension PlayerViewController: AVAudioPlayerDelegate {
         guard let song = song else {
             return
         }
-
-        songService.getSongURL(song) { [weak self] song in
-            guard let songForPlaying = song else {
+        self.songNameLabel.text = song.name
+        self.singerNameButton.setTitle(song.singer, for: .normal)
+        songService.getSongURL(song) { [weak self] data in
+            guard let songForPlaying = data else {
                 return
             }
             do {
                 try AVAudioSession.sharedInstance().setCategory(AVAudioSessionCategoryPlayback)
                 try AVAudioSession.sharedInstance().setActive(true)
                 self?.audioPlayer = try AVAudioPlayer(contentsOf: songForPlaying)
+                self?.audioPlayer.delegate = self
                 self?.audioPlayer.prepareToPlay()
                 self?.audioPlayer.play()
             } catch {
                 print("Unresolved error \(error.localizedDescription)")
+            }
+        }
+        songService.getImageURL(song) { [weak self] data in
+            guard let data = data else {
+                DispatchQueue.main.async() {
+                    self?.songCoverImageView.image = #imageLiteral(resourceName: "ic_play_arrow")
+                }
+                return
+            }
+            DispatchQueue.main.async() {
+                self?.songCoverImageView.image = UIImage(data: data)
             }
         }
     }

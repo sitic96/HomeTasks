@@ -67,6 +67,7 @@ struct CircularQueue<T: Equatable> {
         items.removeAll()
     }
 
+    //     TODO: RENAME
     mutating func changeIndex(with newIndex: Int) {
         if newIndex>0 && newIndex<items.count {
             pointer = newIndex
