@@ -20,10 +20,18 @@ final class Playlist {
     }
 
     init() {
+    }
 
+    func current() -> Song? {
+        return songs.current()
     }
 
     func next() -> Song? {
+        return songs.peek()
+    }
+
+    func prev() -> Song? {
+        songs.movePointerBack()
         return songs.peek()
     }
 
@@ -39,19 +47,11 @@ final class Playlist {
         return songs.get(at: index)
     }
 
-    func shufle() {
-        var secondValue: Int
-        for var index in (0..<songs.size) {
-            secondValue = Int(exactly: arc4random_uniform(UInt32(truncatingIfNeeded: songs.size)))!
-            songs.swap(index, secondValue)
-        }
-    }
-
     func removeAll() {
         songs.removeAll()
     }
 
     func startIndex(with index: Int) {
-        songs.changeIndex(with: index)
+        songs.changePointerPosition(with: index)
     }
 }

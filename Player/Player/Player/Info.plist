@@ -48,5 +48,7 @@
 	</dict>
 	<key>LSApplicationCategoryType</key>
 	<string></string>
+	<key>UIApplicationExitsOnSuspend</key>
+	<false/>
 </dict>
 </plist>

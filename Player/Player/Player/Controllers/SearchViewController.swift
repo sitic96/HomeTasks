@@ -6,7 +6,8 @@ final class SearchViewController: UIViewController {
     @IBOutlet private weak var searchTextField: UITextField!
 
     private var playlist = Playlist()
-    private let networkService = NetworkService()
+    private let songService = SongService()
+//    private let networkService = NetworkService()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -22,7 +23,7 @@ extension SearchViewController {
 
     private func getSongs(songName: String) {
         // TODO remove magic number
-        networkService.getSongsByName(songName, 25) { [weak self] plst in
+        songService.getSongsByName(songName, nil) { [weak self] plst in
             guard let playlst = plst,
              playlst.size > 0 else {
                 return

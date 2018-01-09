@@ -8,10 +8,6 @@
 
 import Foundation
 
-private enum PossibleURLs: String {
-    case basicSearchURL = "https://itunes.apple.com/search?term="
-}
-
 final class NetworkService {
     private let session = URLSession.shared
 
@@ -38,7 +34,6 @@ final class NetworkService {
         URLSession.shared.dataTask(with: url) { data, _, error in
             if error != nil {
                 completionHandler(nil)
-                print(error?.localizedDescription)
             } else {
                 completionHandler(data)
             }
@@ -60,7 +55,7 @@ final class NetworkService {
 
 extension NetworkService {
     // TODO rename
-    private func jsonRequest(url: String, completionHandler: @escaping (_ result: Data?) -> Void) {
+    func jsonRequest(url: String, completionHandler: @escaping (_ result: Data?) -> Void) {
         guard let url = URL(string: url) else {
             return completionHandler(nil)
         }
@@ -77,25 +72,5 @@ extension NetworkService {
         imageRequest(url: link) { data in
             return completionHandler(data)
         }
-    }
-
-    func getSongsByName(_ name: String, _ limit: Int?,
-                                completionHandler: @escaping (_ songs: Playlist?) -> Void) {
-        let url = PossibleURLs.basicSearchURL.rawValue + "\(name)&entity=song&limit=\(limit ?? 25)"
-        jsonRequest(url: url) { [weak self] data in
-            guard let data = data else {
-                return completionHandler(nil)
-            }
-            completionHandler(self?.getSongsFromJSON(json: data))
-
-        }
-    }
-
-    private func getSongsFromJSON(json: Data) -> Playlist? {
-        let decoder = JSONDecoder()
-        guard let result = try? decoder.decode(Result.self, from: json) else {
-            return nil
-        }
-        return Playlist(result.results)
     }
 }

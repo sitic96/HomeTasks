@@ -19,6 +19,10 @@ final class Song: Codable {
     let artwork: URL
     let album: String
     var length: Int?
+    private var liked = false
+    var isLiked: Bool {
+        return liked
+    }
 
     init(singer: String, name: String, genre: String, link: URL, artwork: URL,
          album: String, songID: Int64) {
@@ -42,17 +46,13 @@ final class Song: Codable {
         songID = try values.decode(Int64.self, forKey: .songID)
     }
 
-    // TODO удалить, если не пригодится
-    //    https://stackoverflow.com/a/46327303/4453952
-    //    init(from data: [String: Any?]) throws {
-    //        let jsonData = try JSONSerialization.data(withJSONObject: data)
-    //        let decoder = JSONDecoder()
-    //        self = try decoder.decode(Song.self, from: jsonData)
-    //    }
+    func changeLikeState() {
+        liked = !liked
+    }
 }
 
 extension Song: Equatable {
-    static func ==(lhs: Song, rhs: Song) -> Bool {
+    static func == (lhs: Song, rhs: Song) -> Bool {
         return lhs.songID == rhs.songID
     }
 }

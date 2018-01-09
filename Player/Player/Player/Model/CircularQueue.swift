@@ -16,6 +16,9 @@ struct CircularQueue<T: Equatable> {
     var isEmpty: Bool {
         return items.isEmpty
     }
+    var currentPosition: Int {
+        return pointer
+    }
 
     mutating func enque(value: T) {
         items.append(value)
@@ -45,32 +48,31 @@ struct CircularQueue<T: Equatable> {
         }
     }
 
-    mutating func swap(_ firstElement: Int, _ secondElement: Int) {
-        if !items.isEmpty &&
-            firstElement < items.count &&
-            secondElement < items.count {
-            items.swapAt(firstElement, secondElement)
-        }
-    }
-
-    mutating func swap(_ firstElement: T, _ secondElement: T) {
-        if !items.isEmpty {
-            guard let first = items.index(of: firstElement),
-                let second = items.index(of: secondElement) else {
-                    return
-            }
-            swap(first, second)
-        }
+    func current() -> T? {
+        return items[pointer - 1]
     }
 
     mutating func removeAll() {
         items.removeAll()
     }
 
-    //     TODO: RENAME
-    mutating func changeIndex(with newIndex: Int) {
-        if newIndex>0 && newIndex<items.count {
-            pointer = newIndex
+    mutating func changePointerPosition(with newPosition: Int) {
+        if newPosition>0 && newPosition<items.count {
+            pointer = newPosition
+        }
+    }
+
+    mutating func movePointerBack() {
+        if pointer == 0 {
+            // минус 2 т.к. после каждой выдачи элемента указатель сразу смещается на следующий
+            //            элемент и для получения предыдущего нам нужно сделать шаг назад
+            //            относительно используемого в данный момент
+            //            то есть два шага назад от того, на который указывает указатель
+            pointer = size - 2
+        } else if pointer == 1 {
+            pointer = size - 1
+        } else {
+            pointer-=2
         }
     }
 }
