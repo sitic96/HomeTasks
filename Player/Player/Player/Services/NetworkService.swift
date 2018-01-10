@@ -54,12 +54,10 @@ final class NetworkService {
 }
 
 extension NetworkService {
-    // TODO rename
     func jsonRequest(url: String, completionHandler: @escaping (_ result: Data?) -> Void) {
         guard let url = URL(string: url) else {
             return completionHandler(nil)
         }
-        print(url)
         request(url) { data in
             guard let data = data else {
                 return completionHandler(nil)

@@ -9,7 +9,7 @@
 import UIKit
 import AVFoundation
 
-class PlayerViewController: UIViewController {
+final class PlayerViewController: UIViewController {
 
     @IBOutlet private weak var songCoverImageView: UIImageView!
     @IBOutlet private weak var lengthProgressBar: UIProgressView!
@@ -24,23 +24,28 @@ class PlayerViewController: UIViewController {
     @IBOutlet private weak var maxProgressBarLabel: UILabel!
 
     private let songService = SongService()
-    var playlist = Playlist()
+    var playlist = Playlist() {
+        didSet {
+            restart()
+        }
+    }
     private var audioPlayer = AVAudioPlayer()
-    var updater: CADisplayLink! = nil
+    private var updater: CADisplayLink! = nil
+    private var isDataLoaded = false
 
     override func viewDidLoad() {
         setupSong(playlist.next())
         super.viewDidLoad()
     }
 
-    @IBAction func nextButtonClicked(_ sender: Any) {
+    @IBAction private func nextButtonClicked(_ sender: Any) {
         if audioPlayer.isPlaying {
             audioPlayer.stop()
         }
         setupSong(playlist.next())
     }
 
-    @IBAction func prevButtonClicked(_ sender: Any) {
+    @IBAction private func prevButtonClicked(_ sender: Any) {
         if audioPlayer.isPlaying {
             audioPlayer.stop()
         }
@@ -59,12 +64,25 @@ class PlayerViewController: UIViewController {
         }
     }
 
-    @IBAction func volumeSliderValueChanged(_ sender: UISlider) {
+    @IBAction private func volumeSliderValueChanged(_ sender: UISlider) {
         audioPlayer.volume = sender.value
     }
 
     @IBAction private func searchBySingerName(_ sender: Any) {
-
+        guard let singerID = playlist.current()?.singerID else {
+            return
+        }
+        songService.getSongsByArtistID(singerID, nil) { [weak self] data in
+            guard let newViewController =
+                self?.storyboard?.instantiateViewController(withIdentifier: "SearchResultsViewController"),
+                let resultsViewController = newViewController as? SearchResultsViewController else {
+                    return
+            }
+            if let playlist = data {
+                resultsViewController.playlist = playlist
+                self?.navigationController?.pushViewController(resultsViewController, animated: true)
+            }
+        }
     }
 
     @IBAction private func likeButtonClicked(_ sender: Any) {
@@ -78,11 +96,22 @@ class PlayerViewController: UIViewController {
 
 extension PlayerViewController {
     private func startPlaying() {
-        guard let firstSong = playlist.first() else {
-            // TODO alert
+        guard let firstSong = playlist.next() else {
+            self.showAlert(title: ErrorTitles.error.rawValue, text: ErrorMessageBody.playError.rawValue)
             return
         }
         setupSong(firstSong)
+    }
+
+    func restart() {
+        if self.isViewLoaded {
+            if isDataLoaded {
+                if audioPlayer.isPlaying {
+                    audioPlayer.stop()
+                }
+            }
+            startPlaying()
+        }
     }
 
     private func setupSong(_ song: Song?) {
@@ -103,7 +132,9 @@ extension PlayerViewController {
                 self?.setupSongProgressBar()
                 self?.audioPlayer.prepareToPlay()
                 self?.audioPlayer.play()
+                self?.isDataLoaded = true
             } catch {
+                self?.showAlert(title: ErrorTitles.sorry.rawValue, text: ErrorMessageBody.playError.rawValue)
                 print("Unresolved error \(error.localizedDescription)")
             }
         }
@@ -118,6 +149,12 @@ extension PlayerViewController {
                 self?.songCoverImageView.image = UIImage(data: data)
             }
         }
+    }
+
+    private func setVolume() {
+        let audioSession = AVAudioSession.sharedInstance()
+        try? audioSession.setActive(true)
+        volumeSlider.value = audioSession.outputVolume
     }
 
     private func setupSongProgressBar() {

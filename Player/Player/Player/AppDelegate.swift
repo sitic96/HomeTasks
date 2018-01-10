@@ -18,8 +18,4 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Override point for customization after application launch.
         return true
     }
-
-    func applicationDidEnterBackground(_ application: UIApplication) {
-
-    }
 }

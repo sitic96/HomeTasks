@@ -15,6 +15,7 @@ private enum Type: String {
 
 private enum PossibleURLs: String {
     case basicSearchURL = "https://itunes.apple.com/search?term="
+    case lookupByArtistName = "https://itunes.apple.com/lookup?"
 }
 
 private enum SearchType: String {
@@ -29,10 +30,10 @@ private enum ResultsCount: Int {
 final class SongService {
     private let networkService = NetworkService()
 
-    private func exist(_ song: Song, _ fileTye: Type) -> Bool {
+    private func exist(_ song: Song, _ fileType: Type) -> Bool {
         let path = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0] as String
         let url = NSURL(fileURLWithPath: path)
-        if let pathComponent = url.appendingPathComponent("\(song.songID)" + fileTye.rawValue) {
+        if let pathComponent = url.appendingPathComponent("\(song.songID)" + fileType.rawValue) {
             let filePath = pathComponent.path
             let fileManager = FileManager.default
             if fileManager.fileExists(atPath: filePath) {
@@ -86,17 +87,21 @@ final class SongService {
 
     func getSongsByName(_ name: String, _ limit: Int?,
                         completionHandler: @escaping (_ songs: Playlist?) -> Void) {
+        guard let correctURL = encodeURL(from: name) else {
+            return
+        }
         let url = PossibleURLs.basicSearchURL.rawValue +
-            "\(name)&entity=" + SearchType.song.rawValue + "&limit=\(limit ?? ResultsCount.defaultCount.rawValue)"
+            "\(correctURL)&entity=" + SearchType.song.rawValue + "&limit=\(limit ?? ResultsCount.defaultCount.rawValue)"
+        print(url)
         search(url: url) { data in
             completionHandler(data)
         }
     }
 
-    func getSongsByArtistName(_ name: String, _ limit: Int?,
-                              completionHandler: @escaping (_ songs: Playlist?) -> Void) {
-        let url = PossibleURLs.basicSearchURL.rawValue +
-            "\(name)&entity=" + SearchType.song.rawValue + "&limit=\(limit ?? ResultsCount.defaultCount.rawValue)"
+    func getSongsByArtistID(_ artistID: Int64, _ limit: Int?,
+                            completionHandler: @escaping (_ songs: Playlist?) -> Void) {
+        let url = PossibleURLs.lookupByArtistName.rawValue + "id=\(artistID)&entity=" +
+            SearchType.song.rawValue + "&limit=\(limit ?? ResultsCount.defaultCount.rawValue)"
         search(url: url) { data in
             completionHandler(data)
         }
@@ -113,6 +118,10 @@ final class SongService {
         } catch {
             return nil
         }
+    }
+
+    private func encodeURL(from string: String) -> String? {
+        return string.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)
     }
 
     private func search(url: String,

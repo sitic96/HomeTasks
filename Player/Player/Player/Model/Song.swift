@@ -1,7 +1,7 @@
 import Foundation
 
 final class Song: Codable {
-    enum CodingKeys: String, CodingKey {
+    private enum CodingKeys: String, CodingKey {
         case singer = "artistName"
         case name = "trackName"
         case trackViewUrl = "previewUrl"
@@ -9,10 +9,12 @@ final class Song: Codable {
         case artwork = "artworkUrl100"
         case album = "collectionName"
         case songID = "trackId"
+        case singerID = "artistId"
     }
 
     let songID: Int64
     let singer: String
+    let singerID: Int64
     let name: String
     let primaryGenre: String
     let trackViewUrl: URL
@@ -25,7 +27,7 @@ final class Song: Codable {
     }
 
     init(singer: String, name: String, genre: String, link: URL, artwork: URL,
-         album: String, songID: Int64) {
+         album: String, songID: Int64, singerID: Int64) {
         self.singer = singer
         self.name = name
         self.primaryGenre = genre
@@ -33,6 +35,7 @@ final class Song: Codable {
         self.artwork = artwork
         self.album = album
         self.songID = songID
+        self.singerID = singerID
     }
 
     init(from decoder: Decoder) throws {
@@ -44,6 +47,7 @@ final class Song: Codable {
         artwork = try values.decode(URL.self, forKey: .artwork)
         album = try values.decode(String.self, forKey: .album)
         songID = try values.decode(Int64.self, forKey: .songID)
+        singerID = try values.decode(Int64.self, forKey: .singerID)
     }
 
     func changeLikeState() {
