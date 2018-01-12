@@ -1,25 +1,24 @@
 import UIKit
 
-final class SearchResultsViewController: UIViewController {
-
+final class FavoriteSongsViewController: UIViewController {
+    private var playlist = Playlist()
     @IBOutlet private weak var songsCollectionView: UICollectionView!
-
-    var playlist = Playlist()
 
     override func viewDidLoad() {
         super.viewDidLoad()
         prepareCollectionView()
+        getSavedSongs()
+    }
+
+    private func getSavedSongs() {
+        DispatchQueue.global(qos: .background).async {
+            self.playlist = StorageService.sharedInstance.favoriteSongs
+            DispatchQueue.main.async(execute: self.songsCollectionView.reloadData)
+        }
     }
 }
 
-extension SearchResultsViewController {
-    private func prepareCollectionView() {
-        songsCollectionView.register(UINib(nibName: "SongCell",
-                                           bundle: Bundle.main), forCellWithReuseIdentifier: "cell")
-    }
-}
-
-extension SearchResultsViewController: UICollectionViewDataSource,
+extension FavoriteSongsViewController: UICollectionViewDataSource,
 UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return playlist.size
@@ -46,5 +45,12 @@ UICollectionViewDelegate {
             return
         }
         navigationController?.pushViewController(pVC, animated: true)
+    }
+}
+
+extension FavoriteSongsViewController {
+    private func prepareCollectionView() {
+        songsCollectionView.register(UINib(nibName: "SongCell",
+                                           bundle: Bundle.main), forCellWithReuseIdentifier: "cell")
     }
 }

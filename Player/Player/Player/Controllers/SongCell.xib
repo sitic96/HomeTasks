@@ -72,7 +72,7 @@
             <viewLayoutGuide key="safeArea" id="ZTg-uK-7eu"/>
             <size key="customSize" width="362" height="77"/>
             <connections>
-                <outlet property="singer" destination="5Ze-vA-c5h" id="lGf-uP-ual"/>
+                <outlet property="singerLabel" destination="5Ze-vA-c5h" id="lGf-uP-ual"/>
                 <outlet property="songImage" destination="ww1-9y-F1t" id="VCc-za-uEb"/>
                 <outlet property="songName" destination="0kv-dO-tY3" id="9hb-99-Fgw"/>
             </connections>

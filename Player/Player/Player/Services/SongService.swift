@@ -15,7 +15,6 @@ private enum Type: String {
 
 private enum PossibleURLs: String {
     case basicSearchURL = "https://itunes.apple.com/search?term="
-    case lookupByArtistName = "https://itunes.apple.com/lookup?"
 }
 
 private enum SearchType: String {
@@ -47,7 +46,7 @@ final class SongService {
     }
 
     private func downloadSong(_ song: Song, completionHandler: @escaping (_ result: URL?) -> Void) {
-        networkService.audioFileRequest(url: song.trackViewUrl, songId: song.songID) { url in
+        networkService.audioDownloadRequest(url: song.trackViewUrl, songId: song.songID) { url in
             completionHandler(url)
         }
     }
@@ -62,7 +61,7 @@ final class SongService {
         return destination
     }
 
-    func getSongURL(_ song: Song, completionHandler: @escaping (_ result: URL?) -> Void) {
+    func getSongLocalURL(_ song: Song, completionHandler: @escaping (_ result: URL?) -> Void) {
         if exist(song, .audio) {
             completionHandler(getSongFromMemory(song, .audio))
         } else {
@@ -73,50 +72,28 @@ final class SongService {
     }
 
     func getImageURL(_ song: Song, completionHandler: @escaping (_ result: Data?) -> Void) {
-        networkService.getImage(bigImageURL(small: song.artwork)) { data in
+        networkService.dataRequest(url: bigImageURL(small: song.artwork)) { data in
             completionHandler(data)
         }
     }
 
-    // По дефолту api itunes предоставляет обложку в максимальном разрешение 100х100,
+    // По дефолту api itunes предоставляет обложку в максимальном разрешении 100х100,
     //    для получения изображения лучшего качества нужно заменить в ссылке разрешение на 600х600
     private func bigImageURL(small: URL) -> URL {
         let bigImage = small.relativeString.replacingOccurrences(of: "100x100bb", with: "600x600bb")
         return URL(string: bigImage)!
     }
 
-    func getSongsByName(_ name: String, _ limit: Int?,
+    func getSongsByName(_ name: String,
+                        _ limit: Int?,
                         completionHandler: @escaping (_ songs: Playlist?) -> Void) {
         guard let correctURL = encodeURL(from: name) else {
             return
         }
         let url = PossibleURLs.basicSearchURL.rawValue +
             "\(correctURL)&entity=" + SearchType.song.rawValue + "&limit=\(limit ?? ResultsCount.defaultCount.rawValue)"
-        print(url)
-        search(url: url) { data in
+        searchSong(url: url) { data in
             completionHandler(data)
-        }
-    }
-
-    func getSongsByArtistID(_ artistID: Int64, _ limit: Int?,
-                            completionHandler: @escaping (_ songs: Playlist?) -> Void) {
-        let url = PossibleURLs.lookupByArtistName.rawValue + "id=\(artistID)&entity=" +
-            SearchType.song.rawValue + "&limit=\(limit ?? ResultsCount.defaultCount.rawValue)"
-        search(url: url) { data in
-            completionHandler(data)
-        }
-    }
-
-    func getFavoriteSongs() -> Playlist? {
-        guard let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
-            return nil
-        }
-        let url = documentsURL.appendingPathComponent("songs.json")
-        do {
-            let data = try Data(contentsOf: url, options: [])
-            return getSongsFromJSON(json: data)
-        } catch {
-            return nil
         }
     }
 
@@ -124,9 +101,12 @@ final class SongService {
         return string.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)
     }
 
-    private func search(url: String,
-                        completionHandler: @escaping (_ songs: Playlist?) -> Void) {
-        networkService.jsonRequest(url: url) { [weak self] data in
+    private func searchSong(url: String,
+                            completionHandler: @escaping (_ songs: Playlist?) -> Void) {
+        guard let correctURL = URL(string: url) else {
+            return
+        }
+        networkService.dataRequest(url: correctURL) { [weak self] data in
             guard let data = data else {
                 return completionHandler(nil)
             }

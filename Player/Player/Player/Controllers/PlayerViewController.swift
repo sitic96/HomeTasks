@@ -1,13 +1,11 @@
-//
-//  PlayerViewController.swift
-//  Player
-//
-//  Created by Sitora on 31.12.17.
-//  Copyright © 2017 Sitora. All rights reserved.
-//
-
 import UIKit
 import AVFoundation
+
+private enum PlayingState: String {
+    case pause
+    case playing
+    case ready
+}
 
 final class PlayerViewController: UIViewController {
 
@@ -20,76 +18,79 @@ final class PlayerViewController: UIViewController {
     @IBOutlet private weak var nextButton: UIButton!
     @IBOutlet private weak var volumeSlider: UISlider!
     @IBOutlet private weak var likeButton: UIButton!
-    @IBOutlet private weak var minProgressBarLabel: UILabel!
-    @IBOutlet private weak var maxProgressBarLabel: UILabel!
 
     private let songService = SongService()
+    private var audioPlayer: AVAudioPlayer?
+    private var updater: CADisplayLink! = nil
+    private var currentPlayingState = PlayingState.ready
     var playlist = Playlist() {
         didSet {
             restart()
         }
     }
-    private var audioPlayer = AVAudioPlayer()
-    private var updater: CADisplayLink! = nil
-    private var isDataLoaded = false
 
     override func viewDidLoad() {
         setupSong(playlist.next())
         super.viewDidLoad()
+        do {
+            try AVAudioSession.sharedInstance().setCategory(AVAudioSessionCategoryPlayback,
+                                                            with: AVAudioSessionCategoryOptions.mixWithOthers)
+            try AVAudioSession.sharedInstance().setActive(true)
+        } catch let error as NSError {
+            print(error.localizedDescription)
+        }
     }
 
     @IBAction private func nextButtonClicked(_ sender: Any) {
-        if audioPlayer.isPlaying {
-            audioPlayer.stop()
-        }
+        stopPlayer()
         setupSong(playlist.next())
     }
 
     @IBAction private func prevButtonClicked(_ sender: Any) {
-        if audioPlayer.isPlaying {
-            audioPlayer.stop()
-        }
+        stopPlayer()
         setupSong(playlist.prev())
     }
 
     @IBAction private func stop(_ sender: Any) {
+        guard let player = audioPlayer else {
+            self.showAlert(title: ErrorTitles.sorry.rawValue, text: ErrorMessageBody.playError.rawValue)
+            return
+        }
         animateCoverImageView()
-        if audioPlayer.isPlaying {
-            audioPlayer.pause()
+        if player.isPlaying {
+            player.pause()
+            currentPlayingState = PlayingState.pause
             pauseButton.setImage(#imageLiteral(resourceName:"ic_play_arrow"), for: .normal)
 
         } else {
-            audioPlayer.play()
+            player.play()
+            currentPlayingState = PlayingState.playing
             pauseButton.setImage(#imageLiteral(resourceName:"ic_pause"), for: .normal)
         }
     }
 
     @IBAction private func volumeSliderValueChanged(_ sender: UISlider) {
-        audioPlayer.volume = sender.value
+        guard let player = audioPlayer else {
+            return
+        }
+        player.volume = sender.value
     }
 
     @IBAction private func searchBySingerName(_ sender: Any) {
-        guard let singerID = playlist.current()?.singerID else {
-            return
-        }
-        songService.getSongsByArtistID(singerID, nil) { [weak self] data in
-            guard let newViewController =
-                self?.storyboard?.instantiateViewController(withIdentifier: "SearchResultsViewController"),
-                let resultsViewController = newViewController as? SearchResultsViewController else {
-                    return
-            }
-            if let playlist = data {
-                resultsViewController.playlist = playlist
-                self?.navigationController?.pushViewController(resultsViewController, animated: true)
-            }
-        }
+        //        TODO realise
     }
 
     @IBAction private func likeButtonClicked(_ sender: Any) {
         guard let currentSong = playlist.current() else {
             return
         }
-        likeButton.setImage(currentSong.isLiked ? #imageLiteral(resourceName:"ic_favorite_border") : #imageLiteral(resourceName:"ic_favorite"), for: .normal)
+        if currentSong.isLiked {
+            StorageService.sharedInstance.remove(currentSong)
+            likeButton.setImage(#imageLiteral(resourceName: "ic_favorite_border"), for: .normal)
+        } else {
+            StorageService.sharedInstance.add(currentSong)
+            likeButton.setImage(#imageLiteral(resourceName: "ic_favorite"), for: .normal)
+        }
         currentSong.changeLikeState()
     }
 }
@@ -105,13 +106,16 @@ extension PlayerViewController {
 
     func restart() {
         if self.isViewLoaded {
-            if isDataLoaded {
-                if audioPlayer.isPlaying {
-                    audioPlayer.stop()
-                }
-            }
+            stopPlayer()
             startPlaying()
         }
+    }
+
+    private func stopPlayer() {
+        guard let player = audioPlayer else {
+            return
+        }
+        player.stop()
     }
 
     private func setupSong(_ song: Song?) {
@@ -120,22 +124,25 @@ extension PlayerViewController {
         }
         self.songNameLabel.text = song.name
         self.singerNameButton.setTitle(song.singer, for: .normal)
-        songService.getSongURL(song) { [weak self] data in
+        songService.getSongLocalURL(song) { [weak self] data in
             guard let songForPlaying = data else {
                 return
             }
             do {
-                try AVAudioSession.sharedInstance().setCategory(AVAudioSessionCategoryPlayback)
-                try AVAudioSession.sharedInstance().setActive(true)
                 self?.audioPlayer = try AVAudioPlayer(contentsOf: songForPlaying)
-                self?.audioPlayer.delegate = self
-                self?.setupSongProgressBar()
-                self?.audioPlayer.prepareToPlay()
-                self?.audioPlayer.play()
-                self?.isDataLoaded = true
             } catch {
                 self?.showAlert(title: ErrorTitles.sorry.rawValue, text: ErrorMessageBody.playError.rawValue)
-                print("Unresolved error \(error.localizedDescription)")
+            }
+            guard let player = self?.audioPlayer else {
+                return
+            }
+            player.delegate = self
+            self?.setupSongLengthProgressBar()
+            player.prepareToPlay()
+            if self?.currentPlayingState == PlayingState.playing || self?.currentPlayingState == PlayingState.ready {
+                player.play()
+//                self?.setVolume()
+                self?.currentPlayingState = PlayingState.playing
             }
         }
         songService.getImageURL(song) { [weak self] data in
@@ -151,28 +158,23 @@ extension PlayerViewController {
         }
     }
 
-    private func setVolume() {
-        let audioSession = AVAudioSession.sharedInstance()
-        try? audioSession.setActive(true)
-        volumeSlider.value = audioSession.outputVolume
-    }
+//    private func setVolume() {
+//        let audioSession = AVAudioSession.sharedInstance()
+//        volumeSlider.value = audioSession.outputVolume
+//    }
 
-    private func setupSongProgressBar() {
+    private func setupSongLengthProgressBar() {
         updater = CADisplayLink(target: self, selector: #selector(updateSongProgress))
         updater.preferredFramesPerSecond = 20
         updater.add(to: RunLoop.current, forMode: RunLoopMode.commonModes)
-        DispatchQueue.main.async {
-            self.maxProgressBarLabel.text = "\(Float(self.audioPlayer.duration).toString())"
-        }
     }
 
     @objc private func updateSongProgress() {
-        let normalizedTime = Float(audioPlayer.currentTime / audioPlayer.duration)
-        lengthProgressBar.setProgress(normalizedTime, animated: false)
-        DispatchQueue.main.async {
-            self.minProgressBarLabel.text =
-                "\(Float(self.audioPlayer.duration - self.audioPlayer.currentTime).toString())"
+        guard let player = audioPlayer else {
+            return
         }
+        let normalizedTime = Float(player.currentTime / player.duration)
+        lengthProgressBar.setProgress(normalizedTime, animated: false)
     }
 }
 
@@ -187,7 +189,10 @@ extension PlayerViewController: AVAudioPlayerDelegate {
 
 extension PlayerViewController {
     private func animateCoverImageView() {
-        audioPlayer.isPlaying ? decreaseImageView() : growCoverImageView()
+        guard let player = audioPlayer else {
+            return
+        }
+        player.isPlaying ? decreaseImageView() : growCoverImageView()
     }
 
     private func growCoverImageView() {

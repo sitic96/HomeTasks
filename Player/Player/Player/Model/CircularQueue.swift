@@ -10,6 +10,11 @@ import Foundation
 struct CircularQueue<T: Equatable> {
     fileprivate var items = [T]()
     fileprivate var pointer = 0
+
+    var itemsArray: [T] {
+        return items
+    }
+
     var size: Int {
         return items.count
     }
@@ -25,11 +30,15 @@ struct CircularQueue<T: Equatable> {
     }
 
     mutating func peek() -> T? {
-        if pointer == items.count {
-            pointer = 0
+        if !items.isEmpty {
+            if pointer == items.count {
+                pointer = 0
+            }
+            pointer+=1
+            return items[pointer - 1]
+        } else {
+            return nil
         }
-        pointer+=1
-        return items[pointer - 1]
     }
 
     func first() -> T? {
@@ -41,7 +50,7 @@ struct CircularQueue<T: Equatable> {
     }
 
     func get(at position: Int) -> T? {
-        if position < items.count && position > 0 {
+        if position < items.count && position >= 0 {
             return items[position]
         } else {
             return nil
@@ -59,6 +68,12 @@ struct CircularQueue<T: Equatable> {
     mutating func changePointerPosition(with newPosition: Int) {
         if newPosition>0 && newPosition<items.count {
             pointer = newPosition
+        }
+    }
+
+    mutating func remove(_ item: T) {
+        if let removeItemIndex = items.index(of: item) {
+            items.remove(at: removeItemIndex)
         }
     }
 

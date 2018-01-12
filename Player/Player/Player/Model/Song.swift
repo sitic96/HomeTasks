@@ -26,8 +26,14 @@ final class Song: Codable {
         return liked
     }
 
-    init(singer: String, name: String, genre: String, link: URL, artwork: URL,
-         album: String, songID: Int64, singerID: Int64) {
+    init(singer: String,
+         name: String,
+         genre: String,
+         link: URL,
+         artwork: URL,
+         album: String,
+         songID: Int64,
+         singerID: Int64) {
         self.singer = singer
         self.name = name
         self.primaryGenre = genre

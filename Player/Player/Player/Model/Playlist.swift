@@ -9,6 +9,7 @@
 import Foundation
 final class Playlist {
     private var songs = CircularQueue<Song>()
+
     var size: Int {
         return songs.size
     }
@@ -20,6 +21,10 @@ final class Playlist {
     }
 
     init() {
+    }
+
+    func toArray() -> [Song] {
+        return songs.itemsArray
     }
 
     func current() -> Song? {
@@ -37,6 +42,10 @@ final class Playlist {
 
     func insert(_ song: Song) {
         songs.enque(value: song)
+    }
+
+    func remove(_ song: Song) {
+        songs.remove(song)
     }
 
     func first() -> Song? {
