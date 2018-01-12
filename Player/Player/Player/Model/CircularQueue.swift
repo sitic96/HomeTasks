@@ -1,12 +1,5 @@
-//
-//  RoundQueue.swift
-//  Player
-//
-//  Created by Sitora on 02.01.18.
-//  Copyright © 2018 Sitora. All rights reserved.
-//
-
 import Foundation
+
 struct CircularQueue<T: Equatable> {
     fileprivate var items = [T]()
     fileprivate var pointer = 0
@@ -34,7 +27,7 @@ struct CircularQueue<T: Equatable> {
             if pointer == items.count {
                 pointer = 0
             }
-            pointer+=1
+            pointer += 1
             return items[pointer - 1]
         } else {
             return nil
@@ -64,13 +57,13 @@ struct CircularQueue<T: Equatable> {
     func contains(_ item: T) -> Bool {
         return items.contains(item)
     }
-    
+
     mutating func removeAll() {
         items.removeAll()
     }
 
     mutating func changePointerPosition(with newPosition: Int) {
-        if newPosition>=0 && newPosition<items.count {
+        if newPosition >= 0 && newPosition < items.count {
             pointer = newPosition
         }
     }
@@ -91,7 +84,7 @@ struct CircularQueue<T: Equatable> {
         } else if pointer == 1 {
             pointer = size - 1
         } else {
-            pointer-=2
+            pointer -= 2
         }
     }
 }

@@ -31,8 +31,6 @@ UICollectionViewDelegate {
         if let songCell = cell as? SongCell,
             let song = playlist.get(index: indexPath.row) {
             songCell.singerLabel.text = song.singer
-            //            TODO add download image
-            //            songCell.songImage
             songCell.songName.text = song.name
         }
         return cell
@@ -40,7 +38,7 @@ UICollectionViewDelegate {
 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         playlist.startIndex(with: indexPath.row)
-        PlayScreenService.changePlaylist(self.playlist)
+        PlayScreenService.changePlaylist(playlist)
         guard let pVC = PlayScreenService.playViewController else {
             return
         }

@@ -1,12 +1,5 @@
-//
-//  Playlist.swift
-//  Player
-//
-//  Created by Sitora on 02.01.18.
-//  Copyright © 2018 Sitora. All rights reserved.
-//
-
 import Foundation
+
 final class Playlist {
     private var songs = CircularQueue<Song>()
 

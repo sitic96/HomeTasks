@@ -42,19 +42,19 @@ final class PlayerViewController: UIViewController {
         }
     }
 
-    @IBAction private func nextButtonClicked(_ sender: Any) {
+    @IBAction private func clickedNextButton(_ sender: Any) {
         stopPlayer()
         setupSong(playlist.next())
     }
 
-    @IBAction private func prevButtonClicked(_ sender: Any) {
+    @IBAction private func clickedPrevButton(_ sender: Any) {
         stopPlayer()
         setupSong(playlist.prev())
     }
 
-    @IBAction private func stop(_ sender: Any) {
+    @IBAction private func clickedStopButton(_ sender: Any) {
         guard let player = audioPlayer else {
-            self.showAlert(title: ErrorTitles.sorry, text: ErrorMessageBody.playError)
+            showAlert(title: ErrorTitles.sorry, text: ErrorMessageBody.playError)
             return
         }
         animateCoverImageView()
@@ -70,7 +70,7 @@ final class PlayerViewController: UIViewController {
         }
     }
 
-    @IBAction private func volumeSliderValueChanged(_ sender: UISlider) {
+    @IBAction private func changedVolumeSliderValue(_ sender: UISlider) {
         guard let player = audioPlayer else {
             return
         }
@@ -82,17 +82,17 @@ final class PlayerViewController: UIViewController {
         customTransition.duration = 1.5
         customTransition.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseInEaseOut)
         customTransition.type = kCATransitionFade
-        self.view.window?.layer.add(customTransition, forKey: nil)
+        view.window?.layer.add(customTransition, forKey: nil)
         if let controller = storyboard?.instantiateViewController(withIdentifier: "SongDetailsViewController")
-            as? SongDetailsViewController {
+        as? SongDetailsViewController {
             controller.currentSong = playlist.current()
             controller.modalPresentationStyle = .overCurrentContext
-            self.delegate = controller
+            delegate = controller
             present(controller, animated: false, completion: nil)
         }
     }
 
-    @IBAction private func likeButtonClicked(_ sender: Any) {
+    @IBAction private func clickedLikeButton(_ sender: Any) {
         guard let currentSong = playlist.current() else {
             return
         }
@@ -100,11 +100,8 @@ final class PlayerViewController: UIViewController {
             StorageService.sharedInstance.remove(currentSong)
             likeButton.setImage(#imageLiteral(resourceName: "ic_favorite_border"), for: .normal)
         } else {
-            if StorageService.sharedInstance.add(currentSong) {
-                likeButton.setImage(#imageLiteral(resourceName: "ic_favorite"), for: .normal)
-            } else {
-                showAlert(title: .error, text: .saveError)
-            }
+            StorageService.sharedInstance.add(currentSong)
+            likeButton.setImage(#imageLiteral(resourceName: "ic_favorite"), for: .normal)
         }
         currentSong.changeLikeState()
     }
@@ -113,14 +110,14 @@ final class PlayerViewController: UIViewController {
 extension PlayerViewController {
     private func startPlaying() {
         guard let firstSong = playlist.next() else {
-            self.showAlert(title: ErrorTitles.error, text: ErrorMessageBody.playError)
+            showAlert(title: ErrorTitles.error, text: ErrorMessageBody.playError)
             return
         }
         setupSong(firstSong)
     }
 
     func restart() {
-        if self.isViewLoaded {
+        if isViewLoaded {
             stopPlayer()
             startPlaying()
         }
@@ -138,11 +135,11 @@ extension PlayerViewController {
             return
         }
         prepareUIForNextSong(song)
-        songService.getResourceLocalURL(song, withType: .audio) { [weak self] data in
+        songService.resourceLocalURL(song, withType: .audio) { [weak self] data in
             guard let songForPlaying = data,
-                let player = try? AVAudioPlayer(contentsOf: songForPlaying) else {
-                    self?.showAlert(title: ErrorTitles.error, text: ErrorMessageBody.downloadError)
-                    return
+                  let player = try? AVAudioPlayer(contentsOf: songForPlaying) else {
+                self?.showAlert(title: ErrorTitles.error, text: ErrorMessageBody.downloadError)
+                return
             }
             player.delegate = self
             self?.audioPlayer = player
@@ -153,13 +150,13 @@ extension PlayerViewController {
                 self?.currentPlayingState = PlayingState.playing
             }
         }
-        songService.getResourceLocalURL(song, withType: .image) { [weak self] data in
+        songService.resourceLocalURL(song, withType: .image) { [weak self] data in
             guard let data = data,
-                let image = try? UIImage(data: Data(contentsOf: data)) else {
-                    DispatchQueue.main.async {
-                        self?.songCoverImageView.image = #imageLiteral(resourceName: "ic_play_arrow")
-                    }
-                    return
+                  let image = try? UIImage(data: Data(contentsOf: data)) else {
+                DispatchQueue.main.async {
+                    self?.songCoverImageView.image = #imageLiteral(resourceName: "ic_play_arrow")
+                }
+                return
             }
             DispatchQueue.main.async {
                 self?.songCoverImageView.image = image
@@ -169,10 +166,10 @@ extension PlayerViewController {
 
     private func prepareUIForNextSong(_ song: Song) {
         delegate?.nextSongStarted(song)
-        self.songNameLabel.text = song.name
-        self.singerNameButton.setTitle(song.singer, for: .normal)
+        songNameLabel.text = song.name
+        singerNameButton.setTitle(song.singer, for: .normal)
         StorageService.sharedInstance.favoriteSongs.contains(song) ?
-            likeButton.setImage(#imageLiteral(resourceName: "ic_favorite"), for: .normal) : likeButton.setImage(#imageLiteral(resourceName: "ic_favorite_border"), for: .normal)
+                likeButton.setImage(#imageLiteral(resourceName: "ic_favorite"), for: .normal) : likeButton.setImage(#imageLiteral(resourceName: "ic_favorite_border"), for: .normal)
     }
 
     private func setupSongLengthProgressBar() {
@@ -208,13 +205,13 @@ extension PlayerViewController {
     }
 
     private func growCoverImageView() {
-        UIView.animate(withDuration: 1.5, animations: {() -> Void in
+        UIView.animate(withDuration: 1.5, animations: { () -> Void in
             self.songCoverImageView?.transform = CGAffineTransform(scaleX: 1, y: 1)
         })
     }
 
     private func decreaseImageView() {
-        UIView.animate(withDuration: 1.5, animations: {() -> Void in
+        UIView.animate(withDuration: 1.5, animations: { () -> Void in
             self.songCoverImageView?.transform = CGAffineTransform(scaleX: 0.75, y: 0.75)
         })
     }

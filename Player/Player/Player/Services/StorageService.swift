@@ -1,12 +1,5 @@
-//
-//  StorageService.swift
-//  Player
-//
-//  Created by Sitora on 11.01.18.
-//  Copyright © 2018 Sitora. All rights reserved.
-//
-
 import Foundation
+
 final class StorageService {
     static let sharedInstance = StorageService()
     private let fileName = "songs.json"
@@ -21,27 +14,25 @@ final class StorageService {
         }
     }
 
-    private func save() -> Bool {
-        guard let url = getDocumentsURL() else {
-            return false
+    private func save() {
+        guard let url = documentsURL() else {
+            return
         }
+
         let completeURL = url.appendingPathComponent(fileName)
-        do {
-            let data = try JSONEncoder().encode(savedSongs.toArray())
-            try data.write(to: completeURL, options: [])
-            return true
-        } catch {
-            return false
+        guard let data = try? JSONEncoder().encode(savedSongs.toArray()),
+              (try? data.write(to: completeURL, options: [])) != nil else {
+            return
         }
     }
 
-    func add(_ song: Song) -> Bool {
+    func add(_ song: Song) {
         savedSongs.insert(song)
-        return save()
+        save()
     }
 
     func read() -> Playlist? {
-        guard let url = getDocumentsURL() else {
+        guard let url = documentsURL() else {
             return nil
         }
         let completeURL = url.appendingPathComponent(fileName)
@@ -63,16 +54,16 @@ final class StorageService {
 
     private func removeResourceFromDisk(_ song: Song) {
         let fileManager = FileManager.default
-        guard let documentsUrl =  getDocumentsURL() else {
+        guard let documentsUrl = documentsURL() else {
             return
         }
-        let audioPath = documentsUrl.appendingPathComponent("\(song.id)"+".m4a")
-        let imagePath = documentsUrl.appendingPathComponent("\(song.id)"+".jpg")
+        let audioPath = documentsUrl.appendingPathComponent("\(song.id)" + ".m4a")
+        let imagePath = documentsUrl.appendingPathComponent("\(song.id)" + ".jpg")
         try? fileManager.removeItem(at: audioPath)
         try? fileManager.removeItem(at: imagePath)
     }
 
-    func getDocumentsURL() -> URL? {
+    func documentsURL() -> URL? {
         guard let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
             return nil
         }

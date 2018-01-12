@@ -22,8 +22,8 @@ class SongDetailsViewController: UIViewController {
         transition.duration = 1.5
         transition.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionLinear)
         transition.type = kCATransitionFade
-        self.view.window?.layer.add(transition, forKey: nil)
-        self.dismiss(animated: false, completion: nil)
+        view.window?.layer.add(transition, forKey: nil)
+        dismiss(animated: false, completion: nil)
     }
 
     private func setInfo() {
