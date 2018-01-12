@@ -25,7 +25,7 @@ final class SongService {
     private let networkService = NetworkService()
 
     func getResourceLocalURL(_ song: Song,
-                             _ resourceType: ResourceType,
+                             withType resourceType: ResourceType,
                              completionHandler: @escaping (_ result: URL?) -> Void) {
         if exist(song.id, resourceType) {
             completionHandler(getResourceFromMemory(song.id, resourceType))

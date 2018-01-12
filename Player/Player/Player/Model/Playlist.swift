@@ -48,6 +48,10 @@ final class Playlist {
         songs.remove(song)
     }
 
+    func contains(_ song: Song) -> Bool {
+        return songs.contains(song)
+    }
+
     func first() -> Song? {
         return songs.first()
     }

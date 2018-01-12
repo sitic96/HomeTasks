@@ -22,6 +22,7 @@ final class PlayerViewController: UIViewController {
     private let songService = SongService()
     private var audioPlayer: AVAudioPlayer?
     private var updater: CADisplayLink! = nil
+    weak var delegate: CurrentSongChanged?
     private var currentPlayingState = PlayingState.ready
     var playlist = Playlist() {
         didSet {
@@ -36,8 +37,8 @@ final class PlayerViewController: UIViewController {
             try AVAudioSession.sharedInstance().setCategory(AVAudioSessionCategoryPlayback,
                                                             with: AVAudioSessionCategoryOptions.mixWithOthers)
             try AVAudioSession.sharedInstance().setActive(true)
-        } catch let error as NSError {
-            print(error.localizedDescription)
+        } catch {
+            showAlert(title: .error, text: .playError)
         }
     }
 
@@ -53,19 +54,19 @@ final class PlayerViewController: UIViewController {
 
     @IBAction private func stop(_ sender: Any) {
         guard let player = audioPlayer else {
-            self.showAlert(title: ErrorTitles.sorry.rawValue, text: ErrorMessageBody.playError.rawValue)
+            self.showAlert(title: ErrorTitles.sorry, text: ErrorMessageBody.playError)
             return
         }
         animateCoverImageView()
         if player.isPlaying {
             player.pause()
             currentPlayingState = PlayingState.pause
-            pauseButton.setImage(#imageLiteral(resourceName:"ic_play_arrow"), for: .normal)
+            pauseButton.setImage(#imageLiteral(resourceName: "ic_play_arrow"), for: .normal)
 
         } else {
             player.play()
             currentPlayingState = PlayingState.playing
-            pauseButton.setImage(#imageLiteral(resourceName:"ic_pause"), for: .normal)
+            pauseButton.setImage(#imageLiteral(resourceName: "ic_pause"), for: .normal)
         }
     }
 
@@ -77,16 +78,16 @@ final class PlayerViewController: UIViewController {
     }
 
     @IBAction private func showSongDetailInfo(_ sender: Any) {
-        let transition = CATransition()
-        transition.duration = 1.5
-        transition.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseInEaseOut)
-        transition.type = kCATransitionFade
-        self.view.window?.layer.add(transition, forKey: nil)
-        let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        if let controller = storyboard.instantiateViewController(withIdentifier: "SongDetailsViewController")
+        let customTransition = CATransition()
+        customTransition.duration = 1.5
+        customTransition.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseInEaseOut)
+        customTransition.type = kCATransitionFade
+        self.view.window?.layer.add(customTransition, forKey: nil)
+        if let controller = storyboard?.instantiateViewController(withIdentifier: "SongDetailsViewController")
             as? SongDetailsViewController {
             controller.currentSong = playlist.current()
             controller.modalPresentationStyle = .overCurrentContext
+            self.delegate = controller
             present(controller, animated: false, completion: nil)
         }
     }
@@ -99,8 +100,11 @@ final class PlayerViewController: UIViewController {
             StorageService.sharedInstance.remove(currentSong)
             likeButton.setImage(#imageLiteral(resourceName: "ic_favorite_border"), for: .normal)
         } else {
-            StorageService.sharedInstance.add(currentSong)
-            likeButton.setImage(#imageLiteral(resourceName: "ic_favorite"), for: .normal)
+            if StorageService.sharedInstance.add(currentSong) {
+                likeButton.setImage(#imageLiteral(resourceName: "ic_favorite"), for: .normal)
+            } else {
+                showAlert(title: .error, text: .saveError)
+            }
         }
         currentSong.changeLikeState()
     }
@@ -109,7 +113,7 @@ final class PlayerViewController: UIViewController {
 extension PlayerViewController {
     private func startPlaying() {
         guard let firstSong = playlist.next() else {
-            self.showAlert(title: ErrorTitles.error.rawValue, text: ErrorMessageBody.playError.rawValue)
+            self.showAlert(title: ErrorTitles.error, text: ErrorMessageBody.playError)
             return
         }
         setupSong(firstSong)
@@ -133,21 +137,15 @@ extension PlayerViewController {
         guard let song = song else {
             return
         }
-        self.songNameLabel.text = song.name
-        self.singerNameButton.setTitle(song.singer, for: .normal)
-        songService.getResourceLocalURL(song, .audio) { [weak self] data in
-            guard let songForPlaying = data else {
-                return
-            }
-            do {
-                self?.audioPlayer = try AVAudioPlayer(contentsOf: songForPlaying)
-            } catch {
-                self?.showAlert(title: ErrorTitles.sorry.rawValue, text: ErrorMessageBody.playError.rawValue)
-            }
-            guard let player = self?.audioPlayer else {
-                return
+        prepareUIForNextSong(song)
+        songService.getResourceLocalURL(song, withType: .audio) { [weak self] data in
+            guard let songForPlaying = data,
+                let player = try? AVAudioPlayer(contentsOf: songForPlaying) else {
+                    self?.showAlert(title: ErrorTitles.error, text: ErrorMessageBody.downloadError)
+                    return
             }
             player.delegate = self
+            self?.audioPlayer = player
             self?.setupSongLengthProgressBar()
             player.prepareToPlay()
             if self?.currentPlayingState == PlayingState.playing || self?.currentPlayingState == PlayingState.ready {
@@ -155,22 +153,26 @@ extension PlayerViewController {
                 self?.currentPlayingState = PlayingState.playing
             }
         }
-        songService.getResourceLocalURL(song, .image) { [weak self] data in
-            guard let data = data else {
-                DispatchQueue.main.async {
-                    self?.songCoverImageView.image = #imageLiteral(resourceName: "ic_play_arrow")
-                }
-                return
+        songService.getResourceLocalURL(song, withType: .image) { [weak self] data in
+            guard let data = data,
+                let image = try? UIImage(data: Data(contentsOf: data)) else {
+                    DispatchQueue.main.async {
+                        self?.songCoverImageView.image = #imageLiteral(resourceName: "ic_play_arrow")
+                    }
+                    return
             }
             DispatchQueue.main.async {
-                do {
-                    try self?.songCoverImageView.image = UIImage(data: Data(contentsOf: data))
-                } catch {
-                    self?.songCoverImageView.image = #imageLiteral(resourceName: "ic_play_arrow")
-                }
-//                self?.songCoverImageView.image = UIImage(data: data)
+                self?.songCoverImageView.image = image
             }
         }
+    }
+
+    private func prepareUIForNextSong(_ song: Song) {
+        delegate?.nextSongStarted(song)
+        self.songNameLabel.text = song.name
+        self.singerNameButton.setTitle(song.singer, for: .normal)
+        StorageService.sharedInstance.favoriteSongs.contains(song) ?
+            likeButton.setImage(#imageLiteral(resourceName: "ic_favorite"), for: .normal) : likeButton.setImage(#imageLiteral(resourceName: "ic_favorite_border"), for: .normal)
     }
 
     private func setupSongLengthProgressBar() {

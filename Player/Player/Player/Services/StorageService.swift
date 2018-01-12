@@ -57,7 +57,19 @@ final class StorageService {
 
     func remove(_ song: Song) {
         savedSongs.remove(song)
+        removeResourceFromDisk(song)
         save()
+    }
+
+    private func removeResourceFromDisk(_ song: Song) {
+        let fileManager = FileManager.default
+        guard let documentsUrl =  getDocumentsURL() else {
+            return
+        }
+        let audioPath = documentsUrl.appendingPathComponent("\(song.id)"+".m4a")
+        let imagePath = documentsUrl.appendingPathComponent("\(song.id)"+".jpg")
+        try? fileManager.removeItem(at: audioPath)
+        try? fileManager.removeItem(at: imagePath)
     }
 
     func getDocumentsURL() -> URL? {

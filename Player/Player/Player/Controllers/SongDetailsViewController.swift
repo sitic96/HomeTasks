@@ -28,12 +28,19 @@ class SongDetailsViewController: UIViewController {
 
     private func setInfo() {
         guard let song = currentSong else {
-            showAlert(title: ErrorTitles.sorry.rawValue, text: ErrorMessageBody.noInfo.rawValue)
+            showAlert(title: ErrorTitles.sorry, text: ErrorMessageBody.noInfo)
             return
         }
         trackNameLabel.text = song.name
         singerNameLabel.text = song.singer
         albumNameLabel.text = song.album
         genreLabel.text = song.primaryGenre
+    }
+}
+
+extension SongDetailsViewController: CurrentSongChanged {
+    func nextSongStarted(_ newSong: Song) {
+        currentSong = newSong
+        setInfo()
     }
 }

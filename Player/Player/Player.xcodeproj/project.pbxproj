@@ -20,6 +20,7 @@
 		493B38FB20081C85007B1602 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 493B38FA20081C85007B1602 /* AudioToolbox.framework */; };
 		493B38FD2008B4A7007B1602 /* SongDetailsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493B38FC2008B4A7007B1602 /* SongDetailsViewController.swift */; };
 		493B39032008D3BA007B1602 /* ResourceType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493B39022008D3BA007B1602 /* ResourceType.swift */; };
+		493B39062008EAC4007B1602 /* CurrentSongProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493B39052008EAC4007B1602 /* CurrentSongProtocol.swift */; };
 		498FF6441FF8532B00C4D575 /* PlayerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 498FF6431FF8532B00C4D575 /* PlayerViewController.swift */; };
 		498FF64C1FFB6D0600C4D575 /* Playlist.swift in Sources */ = {isa = PBXBuildFile; fileRef = 498FF64B1FFB6D0600C4D575 /* Playlist.swift */; };
 		498FF64E1FFB6D4A00C4D575 /* CircularQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 498FF64D1FFB6D4A00C4D575 /* CircularQueue.swift */; };
@@ -49,6 +50,7 @@
 		493B38FA20081C85007B1602 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		493B38FC2008B4A7007B1602 /* SongDetailsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongDetailsViewController.swift; sourceTree = "<group>"; };
 		493B39022008D3BA007B1602 /* ResourceType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResourceType.swift; sourceTree = "<group>"; };
+		493B39052008EAC4007B1602 /* CurrentSongProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrentSongProtocol.swift; sourceTree = "<group>"; };
 		498FF6431FF8532B00C4D575 /* PlayerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerViewController.swift; sourceTree = "<group>"; };
 		498FF64B1FFB6D0600C4D575 /* Playlist.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Playlist.swift; sourceTree = "<group>"; };
 		498FF64D1FFB6D4A00C4D575 /* CircularQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CircularQueue.swift; sourceTree = "<group>"; };
@@ -104,6 +106,7 @@
 		4934AD9C1FCC653F00625E42 /* Player */ = {
 			isa = PBXGroup;
 			children = (
+				493B39042008EAA8007B1602 /* Protocols */,
 				493B38F820081C85007B1602 /* Player.entitlements */,
 				493B38F720080964007B1602 /* UI */,
 				498FF6642006C59300C4D575 /* Enums */,
@@ -147,6 +150,14 @@
 				493B38FA20081C85007B1602 /* AudioToolbox.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		493B39042008EAA8007B1602 /* Protocols */ = {
+			isa = PBXGroup;
+			children = (
+				493B39052008EAC4007B1602 /* CurrentSongProtocol.swift */,
+			);
+			path = Protocols;
 			sourceTree = "<group>";
 		};
 		498FF65820056D9400C4D575 /* Extensions */ = {
@@ -285,6 +296,7 @@
 				4934ADA01FCC653F00625E42 /* SearchViewController.swift in Sources */,
 				498FF6662006C5B000C4D575 /* ErrorMessage.swift in Sources */,
 				498FF64C1FFB6D0600C4D575 /* Playlist.swift in Sources */,
+				493B39062008EAC4007B1602 /* CurrentSongProtocol.swift in Sources */,
 				498FF6441FF8532B00C4D575 /* PlayerViewController.swift in Sources */,
 				49014C1F1FF27AAA00227B7E /* SongCell.swift in Sources */,
 				493B39032008D3BA007B1602 /* ResourceType.swift in Sources */,

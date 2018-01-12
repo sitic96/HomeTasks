@@ -61,12 +61,16 @@ struct CircularQueue<T: Equatable> {
         return items[pointer - 1]
     }
 
+    func contains(_ item: T) -> Bool {
+        return items.contains(item)
+    }
+    
     mutating func removeAll() {
         items.removeAll()
     }
 
     mutating func changePointerPosition(with newPosition: Int) {
-        if newPosition>0 && newPosition<items.count {
+        if newPosition>=0 && newPosition<items.count {
             pointer = newPosition
         }
     }
