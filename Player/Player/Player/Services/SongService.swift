@@ -8,11 +8,6 @@
 
 import Foundation
 
-private enum Type: String {
-    case audio = ".m4a"
-    case image = ".jpg"
-}
-
 private enum PossibleURLs: String {
     case basicSearchURL = "https://itunes.apple.com/search?term="
 }
@@ -29,10 +24,22 @@ private enum ResultsCount: Int {
 final class SongService {
     private let networkService = NetworkService()
 
-    private func exist(_ song: Song, _ fileType: Type) -> Bool {
+    func getResourceLocalURL(_ song: Song,
+                             _ resourceType: ResourceType,
+                             completionHandler: @escaping (_ result: URL?) -> Void) {
+        if exist(song.id, resourceType) {
+            completionHandler(getResourceFromMemory(song.id, resourceType))
+        } else {
+            downloadResource(for: song, resourceType) { song in
+                completionHandler(song)
+            }
+        }
+    }
+
+    private func exist(_ resourceID: Int64, _ fileType: ResourceType) -> Bool {
         let path = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0] as String
         let url = NSURL(fileURLWithPath: path)
-        if let pathComponent = url.appendingPathComponent("\(song.songID)" + fileType.rawValue) {
+        if let pathComponent = url.appendingPathComponent("\(resourceID)" + fileType.rawValue) {
             let filePath = pathComponent.path
             let fileManager = FileManager.default
             if fileManager.fileExists(atPath: filePath) {
@@ -45,35 +52,37 @@ final class SongService {
         }
     }
 
-    private func downloadSong(_ song: Song, completionHandler: @escaping (_ result: URL?) -> Void) {
-        networkService.audioDownloadRequest(url: song.trackViewUrl, songId: song.songID) { url in
-            completionHandler(url)
+    private func getResourceFromMemory(_ resourceID: Int64, _ fileType: ResourceType) -> URL? {
+        guard let localURL = StorageService.sharedInstance.getDocumentsURL() else {
+            return nil
         }
-    }
 
-    private func getSongFromMemory(_ song: Song, _ fileType: Type) -> URL? {
-        guard let documentsUrl = try? FileManager.default.url(for: .documentDirectory,
-                                                              in: .userDomainMask, appropriateFor: nil,
-                                                              create: true) else {
-                                                                return nil
-        }
-        let destination = documentsUrl.appendingPathComponent("\(song.songID)" + fileType.rawValue)
+        let destination = localURL.appendingPathComponent("\(resourceID)" + fileType.rawValue)
         return destination
     }
 
-    func getSongLocalURL(_ song: Song, completionHandler: @escaping (_ result: URL?) -> Void) {
-        if exist(song, .audio) {
-            completionHandler(getSongFromMemory(song, .audio))
-        } else {
-            downloadSong(song) { song in
-                completionHandler(song)
+    private func downloadResource(for song: Song,
+                                  _ resourceType: ResourceType,
+                                  completionHandler: @escaping (_ result: URL?) -> Void) {
+        switch resourceType {
+        case .audio:
+            networkService.audioDownloadRequest(url: song.trackViewUrl, songId: song.id) { url in
+                completionHandler(url)
             }
-        }
-    }
-
-    func getImageURL(_ song: Song, completionHandler: @escaping (_ result: Data?) -> Void) {
-        networkService.dataRequest(url: bigImageURL(small: song.artwork)) { data in
-            completionHandler(data)
+        case .image:
+            networkService.dataRequest(url: bigImageURL(small: song.artwork)) { data in
+                guard let data = data,
+                    let localURL = StorageService.sharedInstance.getDocumentsURL() else {
+                        return completionHandler(nil)
+                }
+                let filePath = localURL.appendingPathComponent("\(song.id)" + ".jpg")
+                do {
+                    try data.write(to: filePath)
+                } catch {
+                    return completionHandler(nil)
+                }
+                completionHandler(filePath)
+            }
         }
     }
 
@@ -83,7 +92,8 @@ final class SongService {
         let bigImage = small.relativeString.replacingOccurrences(of: "100x100bb", with: "600x600bb")
         return URL(string: bigImage)!
     }
-
+}
+extension SongService {
     func getSongsByName(_ name: String,
                         _ limit: Int?,
                         completionHandler: @escaping (_ songs: Playlist?) -> Void) {

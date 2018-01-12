@@ -4,11 +4,10 @@ final class NetworkService {
     private let session = URLSession.shared
 
     func audioDownloadRequest(url: URL, songId: Int64, completionHandler: @escaping (_ result: URL?) -> Void) {
-        guard let documentsDirectoryURL = FileManager.default.urls(for: .documentDirectory,
-                                                                   in: .userDomainMask).first else {
-                                                                    return completionHandler(nil)
+        guard let localURL = StorageService.sharedInstance.getDocumentsURL() else {
+            return completionHandler(nil)
         }
-        let destinationUrl = documentsDirectoryURL.appendingPathComponent("\(songId)" + ".m4a")
+        let destinationUrl = localURL.appendingPathComponent("\(songId)" + ".m4a")
 
         URLSession.shared.downloadTask(with: url, completionHandler: { location, response, error -> Void in
             guard
@@ -17,7 +16,6 @@ final class NetworkService {
                 let location = location, error == nil
                 else {
                     return completionHandler(nil)
-
             }
 
             try? FileManager.default.moveItem(at: location, to: destinationUrl)

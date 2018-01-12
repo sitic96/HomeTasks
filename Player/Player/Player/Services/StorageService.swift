@@ -41,12 +41,12 @@ final class StorageService {
     }
 
     func read() -> Playlist? {
-        guard let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
+        guard let url = getDocumentsURL() else {
             return nil
         }
-        let url = documentsURL.appendingPathComponent(fileName)
+        let completeURL = url.appendingPathComponent(fileName)
         do {
-            let data = try Data(contentsOf: url, options: [])
+            let data = try Data(contentsOf: completeURL, options: [])
             let result = try JSONDecoder().decode([Song].self, from: data)
             savedSongs = Playlist(result)
             return savedSongs
@@ -60,7 +60,7 @@ final class StorageService {
         save()
     }
 
-    private func getDocumentsURL() -> URL? {
+    func getDocumentsURL() -> URL? {
         guard let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
             return nil
         }

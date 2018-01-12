@@ -8,11 +8,11 @@ final class Song: Codable {
         case primaryGenre = "primaryGenreName"
         case artwork = "artworkUrl100"
         case album = "collectionName"
-        case songID = "trackId"
+        case id = "trackId"
         case singerID = "artistId"
     }
 
-    let songID: Int64
+    let id: Int64
     let singer: String
     let singerID: Int64
     let name: String
@@ -40,7 +40,7 @@ final class Song: Codable {
         self.trackViewUrl = link
         self.artwork = artwork
         self.album = album
-        self.songID = songID
+        self.id = songID
         self.singerID = singerID
     }
 
@@ -52,7 +52,7 @@ final class Song: Codable {
         trackViewUrl = try values.decode(URL.self, forKey: .trackViewUrl)
         artwork = try values.decode(URL.self, forKey: .artwork)
         album = try values.decode(String.self, forKey: .album)
-        songID = try values.decode(Int64.self, forKey: .songID)
+        id = try values.decode(Int64.self, forKey: .id)
         singerID = try values.decode(Int64.self, forKey: .singerID)
     }
 
@@ -63,6 +63,6 @@ final class Song: Codable {
 
 extension Song: Equatable {
     static func == (lhs: Song, rhs: Song) -> Bool {
-        return lhs.songID == rhs.songID
+        return lhs.id == rhs.id
     }
 }

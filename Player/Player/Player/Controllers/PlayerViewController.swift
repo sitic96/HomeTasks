@@ -135,7 +135,7 @@ extension PlayerViewController {
         }
         self.songNameLabel.text = song.name
         self.singerNameButton.setTitle(song.singer, for: .normal)
-        songService.getSongLocalURL(song) { [weak self] data in
+        songService.getResourceLocalURL(song, .audio) { [weak self] data in
             guard let songForPlaying = data else {
                 return
             }
@@ -155,7 +155,7 @@ extension PlayerViewController {
                 self?.currentPlayingState = PlayingState.playing
             }
         }
-        songService.getImageURL(song) { [weak self] data in
+        songService.getResourceLocalURL(song, .image) { [weak self] data in
             guard let data = data else {
                 DispatchQueue.main.async {
                     self?.songCoverImageView.image = #imageLiteral(resourceName: "ic_play_arrow")
@@ -163,7 +163,12 @@ extension PlayerViewController {
                 return
             }
             DispatchQueue.main.async {
-                self?.songCoverImageView.image = UIImage(data: data)
+                do {
+                    try self?.songCoverImageView.image = UIImage(data: Data(contentsOf: data))
+                } catch {
+                    self?.songCoverImageView.image = #imageLiteral(resourceName: "ic_play_arrow")
+                }
+//                self?.songCoverImageView.image = UIImage(data: data)
             }
         }
     }
