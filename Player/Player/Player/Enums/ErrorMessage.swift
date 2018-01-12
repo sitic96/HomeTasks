@@ -15,4 +15,5 @@ enum ErrorTitles: String {
 enum ErrorMessageBody: String {
     case downloadError = "В процессе скачивания произошла ошибка"
     case playError = "Не удается воспроизвести песню"
+    case noInfo = "Нет информации о песне"
 }

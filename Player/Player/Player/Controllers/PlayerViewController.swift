@@ -76,8 +76,19 @@ final class PlayerViewController: UIViewController {
         player.volume = sender.value
     }
 
-    @IBAction private func searchBySingerName(_ sender: Any) {
-        //        TODO realise
+    @IBAction private func showSongDetailInfo(_ sender: Any) {
+        let transition = CATransition()
+        transition.duration = 1.5
+        transition.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseInEaseOut)
+        transition.type = kCATransitionFade
+        self.view.window?.layer.add(transition, forKey: nil)
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        if let controller = storyboard.instantiateViewController(withIdentifier: "SongDetailsViewController")
+            as? SongDetailsViewController {
+            controller.currentSong = playlist.current()
+            controller.modalPresentationStyle = .overCurrentContext
+            present(controller, animated: false, completion: nil)
+        }
     }
 
     @IBAction private func likeButtonClicked(_ sender: Any) {
@@ -141,7 +152,6 @@ extension PlayerViewController {
             player.prepareToPlay()
             if self?.currentPlayingState == PlayingState.playing || self?.currentPlayingState == PlayingState.ready {
                 player.play()
-//                self?.setVolume()
                 self?.currentPlayingState = PlayingState.playing
             }
         }
@@ -157,11 +167,6 @@ extension PlayerViewController {
             }
         }
     }
-
-//    private func setVolume() {
-//        let audioSession = AVAudioSession.sharedInstance()
-//        volumeSlider.value = audioSession.outputVolume
-//    }
 
     private func setupSongLengthProgressBar() {
         updater = CADisplayLink(target: self, selector: #selector(updateSongProgress))
