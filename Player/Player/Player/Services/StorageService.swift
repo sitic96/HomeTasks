@@ -7,6 +7,7 @@ final class StorageService {
     var favoriteSongs: Playlist {
         return savedSongs
     }
+    weak var delegate: FavoriteSongsChanged?
 
     private init() {
         if let songs = read() {
@@ -24,6 +25,7 @@ final class StorageService {
               (try? data.write(to: completeURL, options: [])) != nil else {
             return
         }
+        delegate?.favoriteSongsChanged(savedSongs)
     }
 
     func add(_ song: Song) {

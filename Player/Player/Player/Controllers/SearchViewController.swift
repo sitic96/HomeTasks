@@ -14,21 +14,19 @@ final class SearchViewController: UIViewController {
 extension SearchViewController {
     private func getSongs(songName: String) {
         songService.songsByName(songName, nil) { [weak self] plst in
-            guard let playlst = plst,
-                  playlst.size > 0 else {
-                return
-            }
             DispatchQueue.main.async {
-                self?.searchTextField.isUserInteractionEnabled = true
-
-                guard let newViewController = self?.storyboard?
+                if let playlist = plst {
+                    guard let newViewController = self?.storyboard?
                         .instantiateViewController(withIdentifier: "SearchResultsViewController"),
-                      let resultsViewController = newViewController as? SearchResultsViewController else {
-                    return
+                        let resultsViewController = newViewController as? SearchResultsViewController else {
+                            return
+                    }
+                    resultsViewController.playlist = playlist
+                    self?.navigationController?.pushViewController(resultsViewController, animated: true)
+                } else {
+                    self?.showAlert(title: .error, text: .downloadError)
                 }
-                resultsViewController.playlist = playlst
-                self?.navigationController?.pushViewController(resultsViewController, animated: true)
-
+                self?.searchTextField.isUserInteractionEnabled = true
             }
         }
     }

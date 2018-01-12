@@ -21,7 +21,7 @@ final class PlayerViewController: UIViewController {
 
     private let songService = SongService()
     private var audioPlayer: AVAudioPlayer?
-    private var updater: CADisplayLink! = nil
+    private var songProgress = CADisplayLink()
     weak var delegate: CurrentSongChanged?
     private var currentPlayingState = PlayingState.ready
     var playlist = Playlist() {
@@ -173,9 +173,9 @@ extension PlayerViewController {
     }
 
     private func setupSongLengthProgressBar() {
-        updater = CADisplayLink(target: self, selector: #selector(updateSongProgress))
-        updater.preferredFramesPerSecond = 20
-        updater.add(to: RunLoop.current, forMode: RunLoopMode.commonModes)
+        songProgress = CADisplayLink(target: self, selector: #selector(updateSongProgress))
+        songProgress.preferredFramesPerSecond = 20
+        songProgress.add(to: RunLoop.current, forMode: RunLoopMode.commonModes)
     }
 
     @objc private func updateSongProgress() {

@@ -8,6 +8,7 @@ final class FavoriteSongsViewController: UIViewController {
         super.viewDidLoad()
         prepareCollectionView()
         getSavedSongs()
+        StorageService.sharedInstance.delegate = self
     }
 
     private func getSavedSongs() {
@@ -50,5 +51,12 @@ extension FavoriteSongsViewController {
     private func prepareCollectionView() {
         songsCollectionView.register(UINib(nibName: "SongCell",
                                            bundle: Bundle.main), forCellWithReuseIdentifier: "cell")
+    }
+}
+
+extension FavoriteSongsViewController: FavoriteSongsChanged {
+    func favoriteSongsChanged(_ newPlaylist: Playlist) {
+        playlist = newPlaylist
+        songsCollectionView.reloadData()
     }
 }
